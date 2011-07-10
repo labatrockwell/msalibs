@@ -116,8 +116,6 @@ namespace MSA {
 			[glWindow() setFrameTopLeftPoint:point];
 		}
 		
-		
-		
 		void AppWindow::setWindowShape(int requestedWidth, int requestedHeight) {
 			NSRect windowFrame  = [glWindow() frame];
 			NSRect viewFrame = [glView() frame];
@@ -176,7 +174,7 @@ namespace MSA {
 			windowPos.y	= screenSize.y = windowPos.y;		// vertically flip position
 
 
-			ofNotifyUpdate();
+			ofGetAppPtr()->update();
 			
 			// set viewport, clear the screen
 			glViewport( 0, 0, viewSize.x, viewSize.y );
@@ -188,7 +186,7 @@ namespace MSA {
 				glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			}
 			
-			ofNotifyDraw();
+			ofGetAppPtr()->draw();
 			
 			// -------------- fps calculation:
 			timeNow = ofGetElapsedTimef();

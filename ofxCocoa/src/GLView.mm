@@ -34,7 +34,7 @@
  - NONE
  ***************/ 
 
-
+#import "ofConstants.h"
 #import "GLView.h"
 #import <OpenGL/gl.h>
 #import <OpenGL/OpenGL.h>
@@ -42,6 +42,7 @@
 #import <OpenGL/glu.h>
 
 #import "ofxCocoa.h"
+
 
 using namespace MSA;
 using namespace ofxCocoa;
@@ -71,7 +72,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 
 -(void)setupDisplayLink {
-	NSLog(@"glView::setupDisplayLink");
+	//NSLog(@"glView::setupDisplayLink");
 	// Create a display link capable of being used with all active displays
 	CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);
 	
@@ -88,7 +89,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 }
 
 -(void)releaseDisplayLink {
-	NSLog(@"glView::releaseDisplayLink");
+	//NSLog(@"glView::releaseDisplayLink");
 	
 	CVDisplayLinkStop(displayLink);
 	CVDisplayLinkRelease(displayLink);
@@ -99,7 +100,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 // --------------------------------
 
 -(void)setupTimer {
-	NSLog(@"glView::setupTimer");
+	//NSLog(@"glView::setupTimer");
 	
 	float dur = targetFrameRate > 0 ? 1.0f /targetFrameRate : 0.001f;
 	
@@ -110,7 +111,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 }
 
 -(void)releaseTimer {
-	NSLog(@"glView::releaseTimer");
+	//NSLog(@"glView::releaseTimer");
 	
 	[timer invalidate];
 	timer = 0;
@@ -126,8 +127,47 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 }
 
 
+-(void) setCaptureExternalMouseEvents:(BOOL)b {
+	captureExternalMouseEvents = b;
+	
+	if (captureExternalMouseEvents){
+		leftMouseDownHandler	= [NSEvent addGlobalMonitorForEventsMatchingMask:NSLeftMouseDownMask handler:^(NSEvent * mouseEvent) {
+			//NSLog(@"Mouse down outside window: %@", NSStringFromPoint([mouseEvent locationInWindow]));
+			[self mouseDownOutside:mouseEvent];
+		}];
+		
+		rightMouseDownHandler	= [NSEvent addGlobalMonitorForEventsMatchingMask:NSRightMouseDownMask handler:^(NSEvent * mouseEvent) {
+			//NSLog(@"Right mouse down outside window: %@", NSStringFromPoint([mouseEvent locationInWindow]));
+			[self rightMouseDownOutside:mouseEvent];
+		}];
+		
+		leftMouseUpHandler		= [NSEvent addGlobalMonitorForEventsMatchingMask:NSLeftMouseUpMask handler:^(NSEvent * mouseEvent) {
+			//NSLog(@"Mouse down outside window: %@", NSStringFromPoint([mouseEvent locationInWindow]));
+			[self mouseUpOutside:mouseEvent];
+		}];
+		
+		rightMouseUpHandler		= [NSEvent addGlobalMonitorForEventsMatchingMask:NSRightMouseUpMask  handler:^(NSEvent * mouseEvent) {
+			//NSLog(@"Right mouse down outside window: %@", NSStringFromPoint([mouseEvent locationInWindow]));
+			[self rightMouseUpOutside:mouseEvent];
+		}];
+		
+		externalMouseEventsAdded = true;
+	} else if (externalMouseEventsAdded) {
+		[NSEvent removeMonitor:leftMouseDownHandler];
+		leftMouseDownHandler = nil;
+		[NSEvent removeMonitor:rightMouseDownHandler];
+		rightMouseDownHandler = nil;
+		[NSEvent removeMonitor:leftMouseUpHandler];
+		leftMouseUpHandler = nil;
+		[NSEvent removeMonitor:rightMouseUpHandler];
+		rightMouseUpHandler = nil;
+		
+		externalMouseEventsAdded = false;
+	}
+}
+
 -(void)startAnimation {
-	NSLog(@"glView::startAnimation using displayLink %@", useDisplayLink ? @"YES" : @"NO");
+	//NSLog(@"glView::startAnimation using displayLink %@", useDisplayLink ? @"YES" : @"NO");
 	
 	if(!isAnimating /*&& displayLink && !CVDisplayLinkIsRunning(displayLink)*/){
 		isAnimating = true;
@@ -141,7 +181,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 }
 
 -(void)stopAnimation {
-	NSLog(@"glView::stopAnimation using displayLink %@", useDisplayLink ? @"YES" : @"NO");
+	//NSLog(@"glView::stopAnimation using displayLink %@", useDisplayLink ? @"YES" : @"NO");
 	if(isAnimating /*&& displayLink && CVDisplayLinkIsRunning(displayLink)*/) {
 		isAnimating = false;
 		
@@ -159,7 +199,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 }
 
 -(void)setFrameRate:(float)rate {
-	NSLog(@"glView::setFrameRate %f", rate);
+	//NSLog(@"glView::setFrameRate %f", rate);
 	[self stopAnimation];
 	targetFrameRate = rate;
 	[self startAnimation];
@@ -200,6 +240,11 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 	[[self openGLContext] makeCurrentContext];
 	
 	appWindow()->updateAndDraw();
+	NSPoint ns_p = [[self window] mouseLocationOutsideOfEventStream];
+	
+	ofPoint p = ofPoint(ns_p.x, self.frame.size.height - ns_p.y, 0); ;
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
 	
 	[[self openGLContext] flushBuffer];
 	
@@ -210,7 +255,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 
 -(id) initWithFrame:(NSRect)frameRect shareContext:(NSOpenGLContext*)context {
-	NSLog(@"GLView::initWithFrame %@", NSStringFromRect(frameRect));
+	//NSLog(@"GLView::initWithFrame %@", NSStringFromRect(frameRect));
 	
 	isAnimating		= false;
 	useDisplayLink	= false;
@@ -231,19 +276,19 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 			NSOpenGLPFANoRecovery,
 			0};
 		
-		NSLog(@"   trying Multisampling");
+		//NSLog(@"   trying Multisampling");
 		pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
 		if(pixelFormat) {
-			NSLog(@"      Multisampling supported");
+			//NSLog(@"      Multisampling supported");
 			glEnable(GL_MULTISAMPLE);
 		} else {
-			NSLog(@"      Multisampling not supported");
+			//NSLog(@"      Multisampling not supported");
 		}
 	}
 	
 	
 	if(pixelFormat == nil) {
-		NSLog(@"   trying non multisampling");
+		//NSLog(@"   trying non multisampling");
 		NSOpenGLPixelFormatAttribute attribs[] = {
 			NSOpenGLPFAAccelerated,
 			NSOpenGLPFADoubleBuffer,
@@ -257,7 +302,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 		pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
 		glDisable(GL_MULTISAMPLE);
 		if(pixelFormat == nil) {
-			NSLog(@"      not even that. fail");
+			//NSLog(@"      not even that. fail");
 		}
 	} 
 	
@@ -284,6 +329,9 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 												   object:self];
 	}
 	
+	NSLog(@"added event handler");
+	
+	[[self window] acceptsFirstMouse:YES];
 	
 	return self;
 }
@@ -312,8 +360,9 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 
 -(void)awakeFromNib {
-	NSLog(@"GLView::awakeFromNib, window:%@",[self window]);
+	//NSLog(@"GLView::awakeFromNib, window:%@",[self window]);
 	[[self window] setAcceptsMouseMovedEvents:YES]; 
+	[[self window] acceptsFirstMouse:YES];
 }
 
 
@@ -337,7 +386,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 
 -(void)goFullscreen:(NSScreen*)screen {
-	NSLog(@"GLView::goFullscreen: %@", screen);
+	//NSLog(@"GLView::goFullscreen: %@", screen);
 	windowMode = OF_FULLSCREEN;
 	[self stopAnimation];
 	
@@ -355,7 +404,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 // ---------------------------------
 -(void)goWindow{
-	NSLog(@"GLView::goWindow");
+	//NSLog(@"GLView::goWindow");
 	
 	windowMode = OF_WINDOW;
 	[self stopAnimation];
@@ -383,6 +432,10 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 }
 
 
+-(BOOL) acceptsFirstMouse:(NSEvent *)theEvent {
+	//[self mouseDown:theEvent];
+	return YES;
+}
 
 
 -(BOOL)acceptsFirstResponder {
@@ -401,7 +454,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 #pragma mark Events
 
 -(void)keyDown:(NSEvent *)theEvent {
-//	NSLog(@"%@", theEvent);
+	//	NSLog(@"%@", theEvent);
 	NSString *characters = [theEvent characters];
 	if ([characters length]) {
 		unichar key = [characters characterAtIndex:0];
@@ -413,20 +466,20 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 			case 63232:
 				key = OF_KEY_UP;
 				break;
-			
+				
 			case 63235:
 				key = OF_KEY_RIGHT;
 				break;
-			
+				
 			case 63233:
 				key = OF_KEY_DOWN;
 				break;
-
+				
 			case 63234:
 				key = OF_KEY_LEFT;
 				break;
 		}
-		ofNotifyKeyPressed(key);
+		ofGetAppPtr()->keyPressed(key);
 	}
 }
 
@@ -434,7 +487,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 	NSString *characters = [theEvent characters];
 	if ([characters length]) {
 		unichar key = [characters characterAtIndex:0];
-		ofNotifyKeyReleased(key);
+		ofGetAppPtr()->keyReleased(key);
 	}
 }
 
@@ -445,52 +498,100 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 -(void)mouseDown:(NSEvent *)theEvent {
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMousePressed(p.x, p.y, 0);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mousePressed(p.x, p.y, 0);
 }
 
 -(void)rightMouseDown:(NSEvent *)theEvent {
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMousePressed(p.x, p.y, 1);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mousePressed(p.x, p.y, 1);
 }
 
 -(void)otherMouseDown:(NSEvent *)theEvent {
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMousePressed(p.x, p.y, 2);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mousePressed(p.x, p.y, 2);
 }
 
 -(void)mouseMoved:(NSEvent *)theEvent{
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMouseMoved(p.x, p.y);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mouseMoved(p.x, p.y);
 }
 
 -(void)mouseUp:(NSEvent *)theEvent {
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMouseReleased(p.x, p.y, 0);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mouseReleased(p.x, p.y, 0);
 }
 
 -(void)rightMouseUp:(NSEvent *)theEvent {
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMouseReleased(p.x, p.y, 1);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mouseReleased(p.x, p.y, 1);
 }
 
 -(void)otherMouseUp:(NSEvent *)theEvent {
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMouseReleased(p.x, p.y, 2);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mouseReleased(p.x, p.y, 2);
 }
 
 -(void)mouseDragged:(NSEvent *)theEvent {
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMouseDragged(p.x, p.y, 0);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mouseDragged(p.x, p.y, 0);
 }
 
 -(void)rightMouseDragged:(NSEvent *)theEvent {
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMouseDragged(p.x, p.y, 1);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mouseDragged(p.x, p.y, 1);
 }
 
 -(void)otherMouseDragged:(NSEvent *)theEvent {
 	ofPoint p = [self ofPointFromEvent:theEvent];
-	ofNotifyMouseDragged(p.x, p.y, 2);
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mouseDragged(p.x, p.y, 2);
+}
+
+-(void)mouseDownOutside:(NSEvent *)theEvent {
+	ofPoint p = [self ofPointFromEvent:theEvent];
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mousePressed(p.x, p.y, 3);
+}
+
+-(void)rightMouseDownOutside:(NSEvent *)theEvent {
+	ofPoint p = [self ofPointFromEvent:theEvent];
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mousePressed(p.x, p.y, 4);
+}
+
+-(void)mouseUpOutside:(NSEvent *)theEvent {
+	ofPoint p = [self ofPointFromEvent:theEvent];
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mouseReleased(p.x, p.y, 3);
+}
+
+-(void)rightMouseUpOutside:(NSEvent *)theEvent {
+	ofPoint p = [self ofPointFromEvent:theEvent];
+	ofGetAppPtr()->mouseX = p.x;
+	ofGetAppPtr()->mouseY = p.y;
+	ofGetAppPtr()->mouseReleased(p.x, p.y, 4);
 }
 
 -(void)scrollWheel:(NSEvent *)theEvent {

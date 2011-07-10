@@ -36,7 +36,8 @@
 
 #pragma once
 
-#include "ofMain.h"
+#import "ofMain.h"
+#import "ofConstants.h"
 
 #import "AppDelegate.h"
 #import "AppWindow.h"
@@ -87,6 +88,9 @@ namespace MSA {
 		
 		void				setTransparent(bool b);
 		bool				getTransparent();
+		
+		void				setCaptureExternalMouseEvents(bool b);
+		bool				getCaptureExternalMouseEvents();
 		
 		void				setSyncToDisplayLink(bool b);
 		bool				getSyncToDisplayLink();

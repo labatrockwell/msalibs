@@ -62,6 +62,13 @@ namespace MSA {
 			return glView().useDisplayLink;
 		}
 		
+		void setCaptureExternalMouseEvents(bool b){
+			[glView() setCaptureExternalMouseEvents:b];
+		}
+		
+		bool getCaptureExternalMouseEvents(){
+			return glView().captureExternalMouseEvents;
+		}
 		
 		NSPoint	toNSPoint(ofPoint p) {
 			return NSMakePoint(p.x, p.y);

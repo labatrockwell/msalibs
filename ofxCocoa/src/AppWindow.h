@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include "ofConstants.h"
 #include "ofAppBaseWindow.h"
 #include "CocoaInitSettings.h"
 

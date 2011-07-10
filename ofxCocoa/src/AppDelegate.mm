@@ -106,7 +106,8 @@ static AppDelegate* _appDelegate = NULL;
 	} else {
 	}
 	
-	ofNotifySetup();
+	ofGetAppPtr()->setup();
+	//ofNotifySetup();
 	
 	[self startAnimation:self];
 	
@@ -118,7 +119,8 @@ static AppDelegate* _appDelegate = NULL;
 - (BOOL)applicationShouldTerminate:(NSNotification*)n {
 //	NSLog(@"applicationShouldTerminate");
 	
-	ofNotifyExit();
+	ofGetAppPtr()->exit();
+	//ofNotifyExit();
 	
 	[self stopAnimation:self];
 	return NSTerminateNow;
