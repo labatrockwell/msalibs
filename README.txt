@@ -1,3 +1,11 @@
+NOTE
+-------------------------
+Fork of Memo Atken's fantastic C++ libraries. Minor updates (mostly to ofxCocoa) to make things work with OF 007.
+
+
+BEGIN MSA README:
+-------------------------
+
 A collection of C++ libraries / utilities. 
 A very lightweight wrapper maps basic types to allow tight integration with openFrameworks (www.openframeworks.cc) and Cinder (www.libcinder.org).
 See www.msalibs.org for demos.
