@@ -55,6 +55,7 @@ namespace MSA {
 		
 		AppWindow::AppWindow(InitSettings initSettings):_initSettings(initSettings) {
 			NSLog(@"AppWindow::AppWindow()");
+			ofWindowPtr             = this;
 			nFrameCount				= 0;
 			bEnableSetupScreen		= true;
 			
@@ -68,8 +69,73 @@ namespace MSA {
 		
 		
 		/******** Initialization methods ************/
-		void AppWindow::setupOpenGL(int w, int h, int screenMode) {
+		void AppWindow::setupOpenGL(int w, int h, int screenMode)
+		{
+            NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			NSLog(@"AppWindow::setupOpenGL()");
+			
+			
+			
+			// Initialize an openGLContext before glewInit()
+			
+			
+			
+			NSOpenGLPixelFormat* pixelFormat = nil;
+			 
+			if(initSettings().numFSAASamples) {
+			 NSOpenGLPixelFormatAttribute attribs[] = {
+			 NSOpenGLPFAAccelerated,
+			 NSOpenGLPFADoubleBuffer,
+			 NSOpenGLPFAMultiScreen,
+			 NSOpenGLPFADepthSize, 24,
+			 NSOpenGLPFAAlphaSize, 8,
+			 NSOpenGLPFAColorSize, 32,
+			 NSOpenGLPFAMultisample,
+			 NSOpenGLPFASampleBuffers, 1,
+			 NSOpenGLPFASamples, initSettings().numFSAASamples,
+			 NSOpenGLPFANoRecovery,
+			 0};
+			 
+			 NSLog(@"   trying Multisampling");
+			 pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+			 if(pixelFormat) {
+				 NSLog(@"      Multisampling supported");
+			 glEnable(GL_MULTISAMPLE);
+			 } else {
+				 NSLog(@"      Multisampling not supported");
+			 }
+			 }
+			 
+			 
+			 if(pixelFormat == nil) {
+				 NSLog(@"   trying non multisampling");
+			 NSOpenGLPixelFormatAttribute attribs[] = {
+			 NSOpenGLPFAAccelerated,
+			 NSOpenGLPFADoubleBuffer,
+			 NSOpenGLPFAMultiScreen,
+			 NSOpenGLPFADepthSize, 24,
+			 NSOpenGLPFAAlphaSize, 8,
+			 NSOpenGLPFAColorSize, 32,
+			 NSOpenGLPFANoRecovery,
+			 0};		
+			 
+			 pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+			 glDisable(GL_MULTISAMPLE);
+			 if(pixelFormat == nil) {
+			 NSLog(@"      not even that. fail");
+			 }
+			 } 
+			
+			//NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+			
+			//NSApplicationMain(0,  NULL);
+			context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
+			[context makeCurrentContext];
+			//[pool release];
+			
+			
+			//[context release];
+			[pool drain];
 		}
 		
 		
@@ -81,7 +147,6 @@ namespace MSA {
 		void AppWindow::runAppViaInfiniteLoop(ofBaseApp * appPtr) {
 			NSLog(@"AppWindow::runAppViaInfiniteLoop()");
 			
-			ofWindowPtr = this;
 			ofGetAppPtr()->mouseX = 0;
 			ofGetAppPtr()->mouseY = 0;
 			
@@ -89,7 +154,7 @@ namespace MSA {
 			
 			NSApplicationMain(0,  NULL);
 			
-			[pool release];	
+			[pool drain];	
 		}
 		
 		
@@ -115,6 +180,8 @@ namespace MSA {
 			
 			[glWindow() setFrameTopLeftPoint:point];
 		}
+		
+		
 		
 		void AppWindow::setWindowShape(int requestedWidth, int requestedHeight) {
 			NSRect windowFrame  = [glWindow() frame];
@@ -143,6 +210,15 @@ namespace MSA {
 		}
 		
 		
+		
+		int	AppWindow::getWidth() {
+			return viewSize.x;
+		}
+		
+		
+		int	AppWindow::getHeight() {
+			return viewSize.y;
+		}
 		
 		ofPoint	AppWindow::getWindowPosition() {
 			return windowPos;
@@ -174,7 +250,7 @@ namespace MSA {
 			windowPos.y	= screenSize.y = windowPos.y;		// vertically flip position
 
 
-			ofGetAppPtr()->update();
+			ofNotifyUpdate();
 			
 			// set viewport, clear the screen
 			glViewport( 0, 0, viewSize.x, viewSize.y );
@@ -186,7 +262,7 @@ namespace MSA {
 				glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			}
 			
-			ofGetAppPtr()->draw();
+			ofNotifyDraw();
 			
 			// -------------- fps calculation:
 			timeNow = ofGetElapsedTimef();

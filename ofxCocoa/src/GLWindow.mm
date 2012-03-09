@@ -74,7 +74,7 @@ using namespace ofxCocoa;
 	int h = self.frame.size.height;
 	
 	
-	ofGetAppPtr()->windowResized(w, h);
+	ofNotifyWindowResized(w, h);
 	
 	[self.contentView setNeedsDisplay:YES];
 }

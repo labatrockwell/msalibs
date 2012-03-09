@@ -36,14 +36,13 @@
 
 #pragma once
 
-#import "ofMain.h"
-#import "ofConstants.h"
+#include "ofMain.h"
 
 #import "AppDelegate.h"
 #import "AppWindow.h"
 #import "GLWindow.h"
 #import "GLView.h"
-
+#import "Events.h"
 
 namespace MSA {
 	namespace ofxCocoa {
@@ -88,7 +87,7 @@ namespace MSA {
 		
 		void				setTransparent(bool b);
 		bool				getTransparent();
-		
+        
 		void				setCaptureExternalMouseEvents(bool b);
 		bool				getCaptureExternalMouseEvents();
 		

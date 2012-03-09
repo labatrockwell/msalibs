@@ -83,7 +83,8 @@ static AppDelegate* _appDelegate = NULL;
 -(void)createGLWindowAndView:(NSRect)windowRect {
 //	NSLog(@"createGLWindowAndView: ");
 	_glWindow	= [[GLWindow alloc] initWithContentRect:windowRect styleMask:appWindow()->initSettings().windowStyle];
-	_glView		= [[GLView alloc] initWithFrame:NSMakeRect(0, 0, windowRect.size.width, windowRect.size.height)];
+    // BR EDIT: MADE [_glWindow openGLContext] -> nil
+	_glView		= [[GLView alloc] initWithFrame:NSMakeRect(0, 0, windowRect.size.width, windowRect.size.height) shareContext:nil];
 	[_glWindow setContentView:_glView];
 	[_glWindow makeKeyAndOrderFront:self];
 	[_glWindow makeFirstResponder:_glView];
@@ -102,12 +103,12 @@ static AppDelegate* _appDelegate = NULL;
 	_appDelegate	= self;
 	
 	if(_glWindow == nil) { // if no window in xib, create programmatically
+        cout<<"HAPPENING???"<<endl;
 		[self createGLWindowAndView:appWindow()->initSettings().initRect];	
 	} else {
 	}
 	
-	ofGetAppPtr()->setup();
-	//ofNotifySetup();
+	ofNotifySetup();
 	
 	[self startAnimation:self];
 	
@@ -119,8 +120,7 @@ static AppDelegate* _appDelegate = NULL;
 - (BOOL)applicationShouldTerminate:(NSNotification*)n {
 //	NSLog(@"applicationShouldTerminate");
 	
-	ofGetAppPtr()->exit();
-	//ofNotifyExit();
+	ofNotifyExit();
 	
 	[self stopAnimation:self];
 	return NSTerminateNow;

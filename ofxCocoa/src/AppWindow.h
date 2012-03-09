@@ -38,7 +38,6 @@
 
 #pragma once
 
-#include "ofConstants.h"
 #include "ofAppBaseWindow.h"
 #include "CocoaInitSettings.h"
 
@@ -50,6 +49,8 @@ namespace MSA {
 		class AppWindow : public ofAppBaseWindow  {
 		public:
 			AppWindow(InitSettings initSettings = InitSettings());
+			
+			NSOpenGLContext* context;
 			
 			void setupOpenGL(int w, int h, int screenMode);
 			void initializeWindow();
@@ -64,6 +65,10 @@ namespace MSA {
 			int		getFrameNum();
 			float	getFrameRate();
 			double  getLastFrameTime();
+			
+			int		getWidth();
+			int		getHeight();
+			
 			
 			ofPoint	getWindowPosition();
 			ofPoint	getWindowSize();

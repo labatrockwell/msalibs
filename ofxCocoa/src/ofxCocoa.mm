@@ -62,13 +62,6 @@ namespace MSA {
 			return glView().useDisplayLink;
 		}
 		
-		void setCaptureExternalMouseEvents(bool b){
-			[glView() setCaptureExternalMouseEvents:b];
-		}
-		
-		bool getCaptureExternalMouseEvents(){
-			return glView().captureExternalMouseEvents;
-		}
 		
 		NSPoint	toNSPoint(ofPoint p) {
 			return NSMakePoint(p.x, p.y);
@@ -173,6 +166,16 @@ namespace MSA {
 		void showSystemUI(int mode) {
 			SetSystemUIMode(mode, NULL);
 		}
+        
+        // BR addition: external mouse stuff
+		void setCaptureExternalMouseEvents(bool b){
+            [glView() setCaptureExternalMouseEvents:b];
+        }
+        
+        //------------------------------------------------------------
+        bool getCaptureExternalMouseEvents(){
+            return [glView() getCaptureExternalMouseEvents];
+        }
 
 		void setTransparent(bool b) {
 			[glWindow() setOpaque:!b];

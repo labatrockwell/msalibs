@@ -34,7 +34,7 @@
  - NONE
  ***************/ 
 
-
+#import "ofConstants.h"
 #import <Cocoa/Cocoa.h>
 #import <QuartzCore/CVDisplayLink.h>
 
@@ -50,30 +50,28 @@
 	
 	float			targetFrameRate;
 	BOOL			useDisplayLink;
-	BOOL			captureExternalMouseEvents;
-	BOOL			externalMouseEventsAdded;
-	
-	id leftMouseDownHandler, rightMouseDownHandler, leftMouseUpHandler, rightMouseUpHandler;
-	
 	CVDisplayLinkRef displayLink;
 	NSTimer			*timer;
 	BOOL			isAnimating;
+    
+	// added BR: capture external mouse events
+	BOOL			captureExternalMouseEvents;
+	BOOL			externalMouseEventsActive;
+	id mouseMoveHandler, leftMouseDownHandler, rightMouseDownHandler, leftMouseUpHandler, rightMouseUpHandler, leftMouseDraggedHandler,rightMouseDraggedHandler;
 }
 
 @property (readonly) BOOL useDisplayLink;
-@property (readonly) BOOL captureExternalMouseEvents;
 @property (readonly) int windowMode;
 @property (readonly) NSOpenGLContext* openGLContext;
 @property (readonly) NSOpenGLPixelFormat* pixelFormat;
+@property (readonly, getter=getCaptureExternalMouseEvents) BOOL captureExternalMouseEvents;
+
 
 -(id) initWithFrame:(NSRect)frameRect;
 -(id) initWithFrame:(NSRect)frameRect shareContext:(NSOpenGLContext*)context;
 
--(void) setCaptureExternalMouseEvents:(BOOL)b;
-
 -(void) setSyncToDisplayLink:(BOOL)b;
 
--(void) updateAndDraw;
 -(void) updateAndDraw;
 -(void) startAnimation;
 -(void) stopAnimation;
@@ -86,9 +84,7 @@
 -(void)goWindow;
 -(void)toggleFullscreen;
 
--(void)mouseDownOutside:(NSEvent *)theEvent;
--(void)rightMouseDownOutside:(NSEvent *)theEvent;
--(void)mouseUpOutside:(NSEvent *)theEvent;
--(void)rightMouseUpOutside:(NSEvent *)theEvent;
+// BR
+-(void) setCaptureExternalMouseEvents:(BOOL)b;
 
 @end
